@@ -1,0 +1,58 @@
+	Command being timed: "/content/arabmaqamrock/bin/audiocpp_cli --task gen --family yue2 --model /content/arabmaqamrock/models/Yue2-3B-GGUF --backend cuda --threads 8 --session-option yue2.model_gguf=yue2-3b-bf16.gguf --session-option yue2.vae_gguf=yue2-vae-f16.gguf --session-option yue2.ar_lora=/content/arabmaqamrock/loras/arabmaqamrock-v3-ar.safetensors --session-option yue2.ar_lora_scale=1.0 --session-option yue2.nar_lora=/content/arabmaqamrock/loras/arabmaqamrock-v3-nar.safetensors --session-option yue2.nar_lora_scale=1.0 --session-option yue2.attention=flash --lyrics ///***///
+[Intro | single clean guitar | close-mic'd, plate reverb, short decay]
+بِاللَّهِ يَا مَنْزِلَ الْعَيْشِ ٱلَّذِي دَرَسَتْ آثَارُهُ
+وَعَفَتْ مُذْ بِنْتُ أَرْبُعُهُ...
+
+[Verse 1 | nostalgic warm vocals | muted acoustic guitar and atmospheric pads]
+بِاللَّهِ يَا مَنْزِلَ الْعَيْشِ ٱلَّذِي دَرَسَتْ آثَارُهُ
+وَعَفَتْ مُذْ بِنْتُ أَرْبُعُهُ...
+هَلِ الزَّمَانُ مُعِيدٌ فِيكَ لَذَّتَنَا
+أَمِ ٱلَّيَالِي ٱلَّتِي أَمْضَتْهُ تُرْجِعُهُ...
+فِي ذِمَّةِ اللَّهِ مَنْ أَصْبَحْتَ مَنْزِلَهُ
+وَجَادَ غَيْثٌ عَلَى مَغْنَاكَ يُمْرِعُهُ...
+مَنْ عِنْدَهُ لِيَ عَهْدٌ لَا يُضَيِّعُهُ
+كَمَا لَهُ عَهْدُ صِدْقٍ لَا أُضَيِّعُهُ...
+
+[Chorus | soaring hopeful vocals | full orchestral build and strings swell — Nahawand]
+عَسَى ٱلَّيَالِي ٱلَّتِي أَضْنَتْ بِفُرْقَتِنَا جِسْمِي
+سَتَجْمَعُنِي يَوْمًا وَتَجْمَعُهُ...
+
+[Verse 2]
+وَمَنْ يُصَدِّعُ قَلْبِي ذِكْرُهُ وَإِذَا جَرَى
+عَلَى قَلْبِهِ ذِكْرِي يُصَدِّعُهُ...
+لَأَصْبِرَنَّ لِدَهْرٍ لَا يُمَتِّعُنِي بِهِ
+وَلَا بِيَ فِي حَالٍ يُمَتِّعُهُ...
+عِلْمًا بِأَنَّ اصْطِبَارِي مُعْقِبٌ فَرَجًا
+فَأَضْيَقُ الْأَمْرِ إِنْ فَكَّرْتَ أَوْسَعُهُ...
+وَإِنْ تُغِلَّ أَحَدًا مِنَّا مَنِيَّتُهُ
+لَا بُدَّ فِي غَدِهِ الثَّانِي سَيَتْبَعُهُ...
+
+[Chorus]
+عَسَى ٱلَّيَالِي ٱلَّتِي أَضْنَتْ بِفُرْقَتِنَا جِسْمِي
+سَتَجْمَعُنِي يَوْمًا وَتَجْمَعُهُ...
+
+[Outro | deep male vocals | clean electric guitar]
+وَإِنْ تُغِلَّ أَحَدًا مِنَّا مَنِيَّتُهُ
+لَا بُدَّ فِي غَدِهِ الثَّانِي سَيَتْبَعُهُ... --request-option style=arabmaqamrock, classical arabic, melismatic, microtonal ornaments, belting, tarab, emotive expressive delivery, symphonic metal, powerful operatic performance, rhythm guitar, epic, clear enunciation, vocal-forward mix, crisp consonants, audiophile, call and response, backing vocals, Maqam Nahawand, mood: "wistful, enduring loyalty, hope" --request-option cot=melody --request-option semantic_max_tokens=6500 --request-option abc_file=/content/arabmaqamrock/out/20261030-203334_easygoing-eagle/scores/e01_base.abc --seed 2020610301 --out /content/arabmaqamrock/out/20261030-203334_easygoing-eagle/e01_base_2020610301.wav --log"
+	User time (seconds): 483.68
+	System time (seconds): 17.44
+	Percent of CPU this job got: 111%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 7:29.44
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 6961660
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 55888
+	Minor (reclaiming a frame) page faults: 7009339
+	Voluntary context switches: 64467
+	Involuntary context switches: 138885
+	Swaps: 0
+	File system inputs: 13987712
+	File system outputs: 94528
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

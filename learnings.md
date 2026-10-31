@@ -1,0 +1,1 @@
+<!-- cross-session patterns (agent appends) -->
