@@ -1,4 +1,4 @@
 <!-- cross-session patterns (agent appends) -->
-- 2026-10-31 · score_writer · Never paste deliverables that are already on disk: the final chat turn was 26.5k tokens for three files written earlier; a paths-only reply was the whole saving.
-- 2026-10-31 · score_writer · A `<codebase>` XML block is not a filesystem and an `excluded='token_limit'` file cannot be run; say so, and reimplement checks once in a single module instead of re-declaring the parser nine times.
-- 2026-10-31 · score_writer · Check whether the input is itself a prior variant (header + the skill's damage table) before protecting its numbers, and label self-computed checks `SELF-CHECK`, never a tool status like `CONFIRMED`.
+- 2026-10-31 · score_writer · Rewrite at phrase level: diff start / apex / landing / breath; a "repair" that smooths a leap, fills a breath or replaces a held note is damage, not a fix.
+- 2026-10-31 · score_writer · Measure character on the rewritten section (leap %, repetition %, apex, Ins share): B's chorus collapsed leaps 14.6→1.5% and called it a recomposition.
+- 2026-10-31 · score_writer · Check whether the input is itself a prior flattened variant before protecting its numbers, and match the source's degree mix instead of maximising colour (b7 2.3→7.6%).

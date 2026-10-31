@@ -1,70 +1,62 @@
 # Audit — `sessions/score_writer/session_SCORE_EDIT.json`
 
-- **Log format:** Google AI Studio export. `runSettings` (`models/gemini-3.8-flash`, `THINKING_HIGH`,
-  `temperature 1.0`), `systemInstruction.text` = a `<codebase>` XML dump (SKILL.md + 7 reference files;
-  `scripts/abc_tool.py` present only as `<file … excluded='token_limit'></file>`), then
-  `chunkedPrompt.chunks[]` with `role`, `text`, `isThought`, `executableCode` / `codeExecutionResult`
-  (PYTHON only), `inlineFile` (base64 deliverables).
-- **Turns cited below** = index in `chunkedPrompt.chunks[]` ("chunk N"). Input file lines cited as
-  `input/e01_base.txt:N`.
-- **No prior report:** `sessions/score_writer/reports/` contained only `.gitkeep` before this file.
-- **No `system_prompt.md`, `tools.json` or `expected.md`** in the session folder; the prompt is
-  reconstructed from `systemInstruction.text`, and correctness is judged against SKILL.md.
-- **No `input/score.abc`** — the only score given is `e01_base.txt`, which is itself a variant (see D9 in §4).
+- **Log format:** Google AI Studio export; `chunkedPrompt.chunks[]` with text / `isThought` /
+  `executableCode` / `inlineFile`. Turns cited as **chunk N**; input lines as `input/e01_base.txt:N`.
+- **No prior report** (`reports/` held only `.gitkeep`). **No `expected.md`** — correctness is judged
+  against SKILL.md and the score itself.
+- **The only score given is `e01_base.txt`**, and its own header says it is a previous variant
+  (`:9` = `% VARIANT A of 04-… | Nahawand on D# | recipe: Polish`). There is no `score.abc`.
 
 ---
 
 ## 1. Summary
 
-**Task (chunk 3, Arabic):** "عدل على السكور … e01_base.txt أعطني الثلاث variants للسكور" — produce
-VAR_A / VAR_B / VAR_C from `e01_base.txt`, following the attached SKILL.md, lyrics and references.
+**Task (chunk 3):** "عدل على السكور … e01_base.txt أعطني الثلاث variants للسكور" — write VAR_A /
+VAR_B / VAR_C from `e01_base.txt` under the attached SKILL.md, lyrics and references.
 
-**Outcome:** four `.abc` files, `VAR_REPORT.md` (48 lines, Arabic) and a chat message with all three
-scores pasted in full (chunk 134). Files are saved on disk (chunk 122–123, 128–129).
+**Outcome:** three variants, a control and a 48-line Arabic report. All files are valid ABC: 124 bars in
+each voice, every bar 16 units, header / `M:2/4` / `L:1/32` / `Q:1/4=65` / `K:D#m` preserved, section
+comments kept, no forbidden tokens, every note inside the Nahawand-on-D# pitch set.
 
-**Correct?** *Mechanically valid, substantively overstated.*
-- Valid: 124 bars in each voice, every bar sums to 16 units, header/`M:2/4`/`L:1/32`/`Q:1/4=65`/`K:D#m`
-  preserved, section comments kept, no tuplets/slurs/repeats/`w:`, no out-of-scale pitch (verified
-  independently on the decoded files, chunks 124–127).
-- Not valid as claimed: the maqam status `CONFIRMED` and the "OK" check lines were never produced by
-  `abc_tool.py` (it cannot run); the edit count in the report is wrong; B and C edit the same bars; and
-  the run never noticed that the input is a previous, flattened variant whose numbers it then protected.
+**Correct?** *Mechanically yes; musically, only C is defensible.*
+- **A** does the four things the skill forbids: it smooths a leap, deletes a breath, replaces a held
+  note with a run, and changes a chorus cadence — in both choruses.
+- **B** recomposes the chorus into a **flatter** chorus than the source: leaps 14.6% → 1.5%, steps
+  82.1% → 93.1%, apex unchanged. That is the "cleaner, tidier" rewrite the skill exists to prevent.
+- **C** is the only variant that moves toward the documented source profile: repeated pitches
+  3.3% → 13.8%, `Ins` sounding in the chorus 0% → 15.6%.
+- The named weakness "the chorus has low energy" is not supported by the numbers: the source chorus
+  already has the song's highest note (77) and a higher mean than the verse (69.2 vs 66.9).
+- The input is itself a flattened variant, and the report protects the flattened numbers (86.4%
+  stepwise, 3.9% repetition) as identity instead of naming them as damage.
 
-**Size:** 135 chunks, 46 Python executions, ~47.7 k characters of generated code, ~34.5 k characters of
-thinking summaries. Logged turn totals: 18,582 (file-writing turn), 28,174 (report thinking),
-20,529 (report file), **26,505 (final chat paste)** = 93.8 k tokens logged; the final paste alone is 28%
-of that, and report drafting + paste ≈ 80%.
+**Size:** 135 chunks, 46 code executions, three variants + control + report.
 
 ---
 
 ## 2. Progress since last report
 
-None — this is the first report on this session. No earlier recommendations to check.
+None — first report on this session.
 
 ---
 
 ## 3. Minimal path
 
-The shortest sequence that reaches the same (or a better) result under the same harness:
-
-1. **Read the source once** (1 cell): `e01_base.txt` (2.2 kB) + the first 12 lines. Note `input/e01_base.txt:9`
-   = `% VARIANT A of 04-… | Nahawand on D# | recipe: Polish` and `:3` = `M:2/4` only.
-2. **Read the lyrics** from the attached `…_time.txt` (already in context, chunk 2): chorus = 2 lines;
-   use syllable counts when recomposing the chorus.
-3. **Write one helper module** `abc_util.py` (1 cell): `parse_sections`, `bar_units`, `set_section`,
-   `features`, `section_register`, `similarity`. Import it in every later cell.
-4. **Decide the target profile** (no code): the file matches the SKILL.md "flattened" column on 5 of 7
-   rows → either repair toward the source profile or state explicitly that you keep the file as-is.
-   Write the decision in the report.
-5. **Edit A** by bar index: 6 `Ins` bars (3 new gaps, 2 overwritten fills) + 3 cadences (1 cell).
-   Assert bar sums and that all other sections are unchanged.
-6. **Edit B**: replace **one** section occurrence (chorus 1, 9 bars), leave chorus 2 untouched (1 cell).
-7. **Edit C**: new chorus hook + `Ins` answer in chorus 1, and only the hook in chorus 2 (1 cell).
-8. **Run the checker once** on all four files (1 cell): bars, dialect, pitch set, per-section note counts,
-   per-section register, similarity, B-vs-C distinctness. Print a dict; use those numbers in the report.
-9. **Write files + report** (1 cell), then a 3-line chat reply with paths only.
-
-≈ 9 code cells instead of 46, and no pasted scores.
+1. **Read the source and its header.** Decide what the file is (a prior variant) and which profile you
+   are repairing toward. Write that decision down.
+2. **Map the phrases.** For every sung line: start degree, apex, landing degree, breath after the last
+   note. This map is the contract for every later edit.
+3. **Map the sections.** Mean/max pitch, note count, `Ins` sounding share, cadence behaviour. This is
+   what a weakness must cite.
+4. **Name 2–3 weaknesses with numbers**, and reject any claim the section map contradicts (e.g. "low
+   chorus energy" when the chorus holds the song's apex).
+5. **Give each variant one dimension.** A: an `Ins` line + one named cadence. B: one section
+   occurrence, recomposed. C: a new hook + its `Ins` answer.
+6. **Write at phrase level**, preserving start, apex, landing and breath unless the weakness names one
+   of them.
+7. **Diff the invariants and the character numbers** (leap %, repetition %, apex, `Ins` share,
+   degree mix). If a leap share collapses or a landing moves, the rewrite failed — rewrite it again.
+8. **Report what changed and where to listen**, not that it "sounds better".
 
 ---
 
@@ -72,173 +64,146 @@ The shortest sequence that reaches the same (or a better) result under the same 
 
 | # | Step | What happened | Cause | Proposed fix | Impact |
 |---|---|---|---|---|---|
-| D1 | Tool discovery (chunks 7–8, 10–11, 21–22) | `os.getcwd()`, parent `listdir`, globs `*scripts*`/`*abc*`, then `os.walk('/')`; all empty. | The `<codebase>` XML is reference text, but the prompt never says the sandbox is separate; `excluded='token_limit'` was not read as "deliberately not provided". | Add the **Runtime** block (E2): state the tool is unavailable and forbid disk searches. | ~3 calls, ~2 k tokens, ~2 min; also the root cause of D7. |
-| D2 | Analysis (chunks 24, 27, 29, 31, 46, 63, 69, 79, 102) | The ABC section/bar parser is re-declared **9 times**, each with slightly different rules (`Z`=16 units, `% line` handling, voice switching). | No instruction to persist a module; each cell re-derives parsing. | "Write `abc_util.py` once and import it" (E2). | ~9 calls, ~15 k tokens; inconsistent logic enabled D5. |
-| D3 | Dead cells (chunks 37, 60, 66, 84) | Cells that are pure comments, a `pass` stub, or `4+2+2+2+2+4` → 16. | Thinking written into code cells. | "Every cell must print a value a later cell uses" (E2). | 4 calls, ~2 k tokens. |
-| D4 | Pitch map (chunks 40–44) | First mapping printed `c: 22` (wrong; should be 10 semitones above D#), then re-derived with MIDI (`c: 10`). | Hand-built semitone table instead of one `abc_to_midi` helper. | Ship `abc_to_midi` in `abc_util.py` (E2). | 2 calls, ~1.5 k tokens. |
-| D5 | First section replace (chunks 72–73, 92–103) | `.replace(c1_ins_orig, …)` matched the **intro's Vocal** `Z\|Z\|Z\|Z\|…` block: intro vocal went 0→12 notes (chunk 98), chorus 1 `Ins` stayed 0. Six cells to detect and fix with a line-aware `replace_section`. | Text-level replacement with no voice/bar anchor and no "everything else unchanged" assertion. | Bar-indexed `set_section` + invariants (E5). | ~6 calls, ~8 k tokens; one silently wrong file state. |
-| D6 | Bar arithmetic (chunks 81–88, 108–112) | A had `z4D2E2F2G2A2c2d4` = 20 units (2 `FIX` lines, chunk 82); C had `D4E2F2G2A2c2d4` = 18 units (chunk 109). Both fixed in a second pass. | Durations written by hand; no sum check at authoring time. | `bar()` helper that sums, plus an assert inside `set_section` (E5). | ~6 calls, ~6 k tokens. |
-| D7 | Validation (chunks 79, 89, 119) | `verify` never ran. Self-written `score_similarity` (index-aligned), `check_modal_compliance` (allows degree 11 unconditionally), `lint_abc` (6 forbidden characters). Report then says `CONFIRMED` and `OK` (chunk 133 §1, §5). | Tool unavailable + no honesty rule for self-checks. | Label every self-check `SELF-CHECK (not tool)`; maqam status `UNVERIFIED` (E2, E6). | Correctness/honesty; no token saving. The report's `sim` numbers are not comparable to the SKILL floors. |
-| D8 | Report numbers (chunk 133 §4–5) | "11 نغمة من 390 (2.8%)" and "97.2% untouched"; measured: **7 notes replaced + 14 added = 21 (5.4%)**, 383/390 unchanged (98.2%). "Where to listen" lists bars 14–15 and 56–57 but omits **103–104**, which A also rewrote. | Prose typed by hand after the fact. | Print the edited-bar list and counts from the checker; paste them into the report (E6). | Accuracy; ~1 k tokens. |
-| D9 | Provenance (chunk 20, 51, 54; report §2) | Agent noticed "the user wants me to fix a flattened rewrite" (chunk 51) and could not find the original (chunk 54), but the report never states it. Its flavor card **protects** "86.4% stepwise" — the exact number SKILL.md lists as flattening damage (88%). | No step 0; flavor card built from absolute numbers only. | Add **step 0 provenance** (E3); compare with the damage table before choosing weaknesses. | Quality: the difference between a 6.5 and an 8/10 seed. Zero tokens. |
-| D10 | Weakness #3 (report §3) | Claims the chorus has low energy / no climax and that B lifts it. Source chorus mean **69.9** vs verse **66.9**, chorus max **77** = song max; B's chorus mean rises only to **71.5** with the same max. | No per-section register check; `structure` never emulated. | Require mean/max per section before any "low energy" claim (E7). | Quality: B may be solving a non-problem. ~1 call. |
-| D11 | Distinctness (chunks 95–114) | B and C both replace **both** choruses (40 vocal bars, plus 9/15 `Ins` bars); B-vs-C pitch similarity 0.807 (chunk 114). | Recipe table is ambiguous; no distinctness check. | B = one section occurrence only; C = hook + answer; check `sim(B,C) < 0.75` (E4). | Quality: three variants, two experiments. ~1 call. |
-| D12 | Unused inputs (chunks 12–19, 52) | Lyrics file never opened by code (only summarized in thinking, chunk 17); `examples.txt` used for 1 kB + filename regex + 5-term search, never for sibling z-scores (`traits` substitute). | No instruction on what to extract when the tool is missing. | "Use the corpus to compute the same features; take the 2–3 z-score outliers as the flavor card" (E3). | Better flavor card; ~2 calls. |
-| D13 | CONTROL (chunks 122, 124) | Raw copy of the source, still headed `% VARIANT A of 04-… \| recipe: Polish` (decoded chunk 124, line 9). `strip-chords` never run (source has no chords, so content is identical). | No header rewrite; tool unavailable. | Write `% CONTROL of <song> \| source unmodified`; run `strip-chords` when chords exist. | Small, but the user may play CONTROL thinking it is variant A. |
-| D14 | Final chat (chunk 134) | Pastes all three full scores: 7,356 characters, turn logged at **26,505 tokens**, after the files were already written. SKILL.md says "short chat summary (counts, exceptions) and stop". | The skill says "short" but not "do not paste". | E1: "Do not paste the ABC files into the chat." | **~26.5 k tokens per song** — the single largest avoidable cost. |
-| D15 | Report wording (chunk 133) | "أحادي لحني" (monophonic) for a two-voice file; "المقام حسب المجلد" with no folder; "الأشرطة" (tapes) for bars; "قفلة البيت الثالث … البيت 1" inconsistent; §5 omits the template's repetition/leap before/after. | Hand-written prose; template only partly followed. | Generate §4–5 from the checker dict; fix the three terms. | Small; credibility. |
+| M1 | A, verse 14–15 | `E2F2G4F2E6\|A8z8` → `E2F2G4F2E4F2\|G2F2E4D8`: the E→A fourth is filled with F and the 8-unit breath after the held A is deleted. The thinking says "inserting an F2 to connect the notes" (chunk 71). | The weakness was framed as "an unprepared leap", so the fix removed the leap. | Prepare the leap *before* it and keep the held A and its breath. Smoothing a leap is a `FIX`, not a repair. | Deletes a signature gesture and a deliberate breath — the exact flattening the skill warns about. |
+| M2 | A, chorus 56–57 and 103–104 | `…d2c2B4A8\|E8D8` (held 5, then 2→1) → `…A4c4\|B4A4F2E2D4`. The held 5 is gone and the 2→1 descent is replaced by a run. Done in **both** choruses. | No cadence map; the edit was made note-by-note. | Diff each phrase's landing degree; a changed landing is allowed only when the named weakness *is* that cadence. | Changes the chorus closure and the phrase's resting point; the report does not mention it. |
+| M3 | A, `Ins` | The "chorus has no Ins" weakness is "fixed" with one 5-note cell in the final `D16` bar of each chorus: 24 sounding units of 1024 (2.3%). Two of the six placements also overwrite existing source fills (verse 10, 30). | "Add a hook" was read as "put notes in the rests". | `Ins` is a line: one continuous 2–4 bar counter-melody per section, sounding share within ±5 points of the source. | The chorus body is still silent; the arrangement problem is not solved. |
+| M4 | A, hook | Three different 5-note cells, each used twice (`D2E2F2E2`, `D2c2B2A2`, `F2G2A2c2d4`), not one figure returning 3–4 times. | No motif discipline. | One 4–6 note cell, 3–4 irregular placements, varied by inversion/transposition. | Nothing is recognisable as "the hook"; it reads as three fills. |
+| M5 | B, chorus | Recomposed chorus is smoother than the source: leaps **14.6% → 1.5%**, steps **82.1% → 93.1%**, repeated pitches 3.3% → 5.4%. | A stepwise "safe" melody; only median note length was checked (it stayed 0.462 s). | Character floors on the rewritten section: leap share ±4 points, repetition ±5 points, apex not lower. | B is the flattening failure the skill describes, sold as "recompose". |
+| M6 | B, "lift" | Mean rises 69.2 → 71.5 (+2.3 semitones) but the apex stays 77 in all versions. | No before/after register measurement. | "Lift" must name a mean or apex interval and print both. | The claimed lift is a shade, not a lift. |
+| M7 | Weakness #3 | "Low chorus energy / no climax" — the source chorus already has the highest mean (69.2 vs verse 66.9) and the song's highest note (77). | No per-section register check; the claim came from reading the melody. | Every "low energy" claim must cite mean and max next to the previous section. | B spends its whole budget solving a non-problem. |
+| M8 | B and C, colour | b7 goes 2.3% → 7.6% in both (3.3×). The report presents it as fixing "rare b7". | "More colour = better" instead of matching the source mix. | Match each degree within ±2 points of the source; colour is matched, not maximised. | A different Nahawand colour, not the song's. |
+| M9 | B and C, scope | Both replace the same 30 vocal bars (chorus 1 bars 1–8, chorus 2 bars 1–22); B-vs-C pitch similarity 0.807 (chunk 114). | The recipe table is ambiguous; no distinctness check. | B replaces **one** occurrence; C writes the hook and its answer. | Three variants, two experiments. |
+| M10 | B and C, cadence | Both turn the chorus's first phrase from a tonic landing (source `D8E4D4`, degree 1) into a dominant landing (`A8G4A4` / `c6B2A8`, degree 5). | Phrase landings were never mapped. | Keep the source's landing unless the weakness names it; if you open the phrase on 5 deliberately, say so. | The chorus no longer closes its first line the way the song does. |
+| M11 | B and C, prosody | C sets 19 notes on the chorus line (~13 syllables); B sets 16. No syllable count was made, although the lyrics were attached. | The lyrics were read for theme only (chunk 17). | Count notes per syllable in every rewritten phrase; flag >1.5 and say whether it is melisma. | Risk that the line no longer fits the words it was sung to. |
+| M12 | Source / report | Input header says it is a prior variant; its numbers match the skill's "flattened" column on 5 of 7 rows (0.462 s / 3.9% / 86.4% / 2.3% / no chords / `M:2/4` only). The report instead protects 86.4% stepwise as identity. | No provenance step; flavor card built from absolute numbers only. | Check the header and the damage table before choosing what to protect; state the target profile. | The variants entrench the damage the skill was written to repair. |
+| M13 | Harmony | Source has no chord symbols; the report calls it "chord-free and ready for generation". Per the skill, the source had a chord track (138 symbols in the reference) and losing it is damage. | No harmony step. | Restore chords from the original, or state that the seed has lost its harmony; do not present a chordless score as a property. | The generator receives no harmony; abcjs plays a bare melody. |
+| M14 | Modal accuracy | "In the maqam" was checked only as pitch-set membership (all notes in 0 2 3 5 7 8 10). No sayr, cadence or degree-mix check; `CONFIRMED` is asserted. | Scale membership was treated as modal compliance. | Check the 2↔b3 pair, the cadence formulas, and the degree mix; say "in scale" when that is all you checked. | "In scale" is not "in maqam"; the report overstates modal accuracy. |
 
 ---
 
 ## 5. Ranked edits
 
-Ordered by estimated token/time savings. Exact replacement text; `G` = generalizable, `R` = run-specific.
+Ordered by musical impact. Exact replacement text for `SKILL.md`; `G` = generalizable.
 
-### E1 — Stop pasting scores in chat (G) — saves ~26.5 k tokens/song
-In `SKILL.md` §7, replace:
-
-> Then a short chat summary (counts, exceptions)
-> and stop. No questions.
-
-with:
-
-> Then a short chat summary (counts, exceptions) and stop. No questions. **Do not paste the ABC files
-> into the chat** — they are already on disk; list the four paths, one line each (bars, sim, changed bars).
-
-### E2 — Runtime block: tool absent, one module, no disk search (G) — saves ~15–20 k tokens
-Insert at the top of the system prompt, before `<codebase>`:
+### E1 — Phrase map and invariants (G)
+Add before step 4 ("Write the ABC"):
 
 ```
-## Runtime (read once)
-The <codebase> block above is reference text, not a mounted filesystem. `scripts/abc_tool.py` is
-excluded (`excluded='token_limit'`) and cannot be run. Do not search the disk for it (no `os.walk('/')`,
-no globs). When the tool is unavailable:
-- put `SELF-CHECK (not tool)` in front of every check you compute yourself;
-- write the maqam status as `UNVERIFIED`, never `CONFIRMED` or `KEEP_LABEL`;
-- write one `abc_util.py` on your first code cell and import it afterwards
-  (`parse_sections`, `bar_units`, `set_section`, `features`, `section_register`, `similarity`);
-  never re-declare a parser;
-- never use a code cell for reasoning: every cell must print a value a later cell uses.
+Before writing a bar, list every phrase as (start degree, apex, landing degree, breath after the last
+note). After writing, diff the list. A changed landing or a deleted breath is allowed only if the named
+weakness is that cadence or that breath; otherwise restore it.
 ```
 
-### E3 — Provenance / flattening check before measuring (G) — biggest quality gain, 0 tokens
-Insert as `### 0.` before `### 1. Measure` in `SKILL.md`:
+### E2 — Forbidden edits for A (G)
+Replace the "What not to do" line in step 3 with:
 
 ```
-### 0. Provenance (before you measure)
-Read the first 12 lines. If they contain `% VARIANT ... | recipe: ...`, the file is a previous variant,
-not the song. Compare its numbers with the damage table at the top of this file. If two or more match
-the "flattened" column, write that in the report's assumptions and do **not** protect those numbers:
-the repair target is the source profile. If the original `score.abc` is not available, say which
-profile you treat as the target and why.
+For A these are never repairs: replacing a held note with a run, filling a breath that is part of the
+delivery, smoothing a leap (prepare it before the leap instead), and changing a phrase's landing degree.
+If your fix removes the thing you named as a weakness, you removed a quirk, not a fault.
 ```
 
-Evidence this run: `input/e01_base.txt:9` is a variant; measured 0.462 s median / 3.9 % repeats /
-86.4 % steps / 2.3 % b7 / no chords / `M:2/4` only vs the table's 0.46 / 3 / 88 / 2 / none /
-2/4 with 3/8 and 1/4.
-
-### E4 — Make B and C edit different bars (G) — quality, ~1 call
-Replace the "The three must differ…" paragraph in `SKILL.md` §3 with:
+### E3 — Character floors for B and C (G)
+Add to the variant table in step 3:
 
 ```
-The three must differ **in what they edit**, not only in the notes they write: A edits `Ins` + one
-cadence and leaves every sung contour alone; B replaces **one section occurrence** (e.g. chorus 1,
-9 bars) and leaves the other occurrence untouched; C replaces the chorus hook and adds its `Ins`
-answer. If B and C replace the same bars, they are one experiment run twice: `compare B C` and if
-`sim > 0.75`, change B's target section.
+B and C floors, measured on the rewritten section only: leap share within ±4 points of the source
+section, repeated-pitch share within ±5 points, apex not lower, median note length within x0.6-1.6.
+A recomposition that turns 14.6% leaps into 1.5% is a FIX, not a new chorus.
 ```
 
-### E5 — Bar-indexed editor with invariants (G) — saves ~8–14 k tokens
-Add after `cp <song>/score.abc <song>/VAR_A_score.abc  # then edit bars in place`:
+### E4 — `Ins` is a line (G)
+Add to step 4 and to `references/abc_writing.md` §8:
 
 ```
-Edit by bar index, never by `.replace()`: `set_section(text, name, occurrence, voice, bars)` must
-assert (a) every edited bar sums to the meter, (b) every other section is byte-identical, (c) the
-section's sung-note count stays within 15%, and (d) the intro's vocal note count is still 0. A plain
-`.replace()` matches the first `Z|Z|Z|Z|` in the file (the intro) and silently writes chorus fills
-into the intro.
+Ins is a line: at least one continuous 2-4 bar counter-melody per section, sounding share within
+±5 points of the source section. Four-note cells dropped into rests are fills, not a second voice;
+they do not fix "the chorus has no Ins".
 ```
 
-### E6 — Report numbers come from the checker (G) — accuracy
-Add to `SKILL.md` §6:
+### E5 — Provenance and target profile (G)
+Add as step 0:
 
 ```
-Every number in the report is printed by the checker, never typed by hand: the edited-bar list,
-sung notes replaced / added / unchanged, per-section note counts, sim/rhythm. A check you ran
-yourself is `SELF-CHECK`, not `OK`.
+Read the first 12 lines. `% VARIANT ... | recipe: ...` means the file is a previous variant. Compare
+its numbers with the damage table: if two or more match the "flattened" column, say so and repair
+toward the source profile, not toward the file's numbers.
 ```
 
-Add to `references/report_template.md` §6 as the first bullet:
+### E6 — Measure the lift (G)
+Add to the B row in step 3:
 
 ```
-- المصدر: <هل الملف نسخة سابقة؟ ماذا يقول سطره التاسع؟ أي profile تعتمده كهدف ولماذا>
+"Lift the chorus" means a named interval in mean or apex, printed before/after. Raising the mean by
+2 semitones while the apex stays the same is a shade, not a lift; say which one you did.
 ```
 
-### E7 — Weakness claims need per-section register (G) — quality, ~1 call
-Add to `SKILL.md` §1(b):
+### E7 — Degree-mix band (G)
+Add to step 1(a) and `references/maqam_rules.md` §8:
 
 ```
-For every "low energy" or "no climax" claim, print the section's mean and max pitch next to the
-previous section. If the section already holds the song's highest note and highest mean, it is not a
-weakness.
+Match the source's degree mix within ±2 points per degree (b7 2.3% -> 7.6% is a different colour,
+not a repair). Colour is matched, not maximised.
 ```
 
-### E8 — Task-prompt preamble for a variant input (R/G) — 0 tokens
-Prepend to the user task (chunk 3):
+### E8 — Prosody check (G)
+Add to step 4:
 
 ```
-المصدر e01_base.txt يحمل في سطره التاسع «VARIANT A ... recipe: Polish». اذكر في التقرير هل تصلح هذا
-الملف كما هو أم تعيده نحو الأصل، ولا تعتبر أرقامه (86.4% خطوي، 3.9% تكرار) هويةً تحفظها.
+Count notes per lyric syllable in every rewritten phrase. Flag above 1.5 notes/syllable and say why
+(melisma, or a phrase that no longer fits the line).
 ```
 
-### E9 — Harness: actually provide the tool (G) — removes the whole reimplementation branch
-Mount `scripts/abc_tool.py` (74 kB) in the sandbox, or expose one tool `abc_tool(cmd, args)` with
-`brief`, `maqam`, `check`, `lint`, `modal`, `compare`, `features`, `structure`, `verify`,
-`chords-from`, `strip-chords`. Without it, E2 is the fallback; with it, D1/D2/D4/D7 disappear.
+### E9 — One experiment per variant (G)
+Replace the distinctness paragraph in step 3:
 
-### E10 — Minor: CONTROL header + index (R) — small
-Write `% CONTROL of <song> | source unmodified` as line 9 of `CONTROL_score.abc` (currently still
-`% VARIANT A … recipe: Polish`, chunk 124); emit `VARIANTS_INDEX.md` as §7 requires.
+```
+B replaces one section occurrence and leaves the other untouched; C writes the hook and its answer.
+If both replace the same bars, you tested one hypothesis twice.
+```
+
+### E10 — Harmony is part of the seed (G)
+Add to step 4:
+
+```
+A chordless source is a lost chord track, not a property. Restore it from the original or say the
+seed has no harmony; do not call a chordless score "ready for generation".
+```
 
 ---
 
 ## 6. Overfit vs generalizable
 
-**Run-specific (overfit)**
-- Exact bar numbers (14–15, 56–57, 103–104), note counts (21/390), and the specific hook figures.
-- The D#m/Nahawand spelling and the 124-bar/16-unit arithmetic.
-- The `e01_base` provenance conclusion (a prior "Polish" variant) is specific to this file — but the
-  *check* for it is general.
+**Run-specific**
+- The exact bars (14–15, 56–57, 103–104), the three hook cells, and the D#m/Nahawand spelling.
+- The `e01_base` provenance conclusion (a prior "Polish" variant) — but the check for it is general.
 
 **Generalizable**
-- Never paste deliverables in chat (E1); the final turn was 26.5 k tokens for content already on disk.
-- The codebase XML is not a filesystem; state it, and forbid `os.walk('/')` (E2, D1).
-- One helper module, no re-declared parsers, no reasoning-only cells (E2, D2/D3).
-- Edit by bar index with invariants, never `.replace()` (E5, D5).
-- Assert bar sums when authoring, not after (E5, D6).
-- A self-check is not a tool check: label it, and never claim a tool status you did not get (E2/E6, D7).
-- Report numbers must be printed by the checker (E6, D8).
-- Check whether the input is already a variant before protecting its numbers (E3, D9).
-- "Low energy" needs mean/max per section (E7, D10).
-- B and C must not replace the same bars (E4, D11).
+- Rewrite at phrase level and diff landing / apex / breath, not just note counts (M1, M2, M10).
+- A "repair" that removes a leap, a held note or a breath is damage (M1, M2).
+- Measure character (leap %, repetition %, apex) on the rewritten section; stepwise safety is flattening (M5).
+- `Ins` must be a line, not cells in rests (M3, M4).
+- A lift must move the apex or be stated as a mean shift (M6).
+- Weaknesses must be supported by per-section mean/max, not by reading (M7).
+- Match the source's degree mix instead of maximising colour (M8).
+- Check whether the input is already a variant before protecting its numbers (M12).
+- A chordless seed has lost its harmony (M13).
+- "In scale" is not "in maqam": check cadence and sayr (M14).
 
 ---
 
 ## 7. Open questions / assumptions
 
-1. **Is `e01_base.txt` the 8/10 source or the flattened 6.5 variant?** The header (`:9`) says it is a
-   variant with a "Polish" recipe (not one of the current three), and its numbers match the SKILL.md
-   damage column on 5 of 7 rows. But `…_time.txt` shows this same file was the `abc_file` seed for the
-   generated track (`--request-option abc_file=…/e01_base.abc --seed 2020610301`), so the user may have
-   been rating *this* profile. Either way the report had to say which; it says neither. I treat the
-   "flattened variant" reading as the more likely one because of the header.
-2. **`abc_tool.py` was never available.** The system prompt contains it as an empty `excluded` file and
-   the sandbox `/root` held only the three attachments (chunk 6). So `verify`/`maqam`/`structure` could
-   not run; all "OK"/"CONFIRMED" lines are self-graded. I assume the harness intended the file to be
-   mounted and failed to do so.
-3. **`runSettings.enableCodeExecution` is `false`** while the log contains 46 PYTHON executions — the
-   export's settings do not reflect the actual tool configuration; ignore that field.
-4. **Token figures** are from the log's per-turn `tokenCount` (repeated on each part of a turn): 18,582 /
-   28,174 / 20,529 / 26,505. The 42 code-only turns carry no count, so total cost is higher than 93.8 k.
-5. **Correctness of the musical choices** (whether B's chorus is better, whether C's hook is memorable)
-   cannot be judged from the log and is explicitly a listening test in the skill.
+1. **Is `e01_base.txt` the 8/10 source or the flattened 6.5 variant?** The header says it is a variant
+   with a "Polish" recipe (not one of the current three), and its numbers match the damage column on 5
+   of 7 rows. But `…_time.txt` shows this same file was the `abc_file` seed for the generated track
+   (`--request-option abc_file=…/e01_base.abc --seed 2020610301`), so the user may have been rating
+   *this* profile. Either way the report had to say which; it says neither. I treat the "flattened
+   variant" reading as more likely because of the header.
+2. **No original `score.abc`** — the chord track and the pre-flattening melody are unavailable, so the
+   identity target can only be described, not restored. Assumed when judging M12/M13.
+3. **The "weak chorus" premise** may come from the user's ear rather than the numbers. If he hears it as
+   weak despite the chorus holding the apex, that is a valid ear judgment — but it must be stated as
+   such, not as a measured weakness.
+4. **Whether B's smoother chorus is preferable** is a listening question; the skill's own damage table
+   says a stepwise chorus is the failure mode, so B is judged against that, not against taste.
